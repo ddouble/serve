@@ -1,6 +1,8 @@
-Serve.sh
+`Serve.sh`
 ================================================
 Serve any directory as a public HTTP web site
+
+`serve.sh` can serve a Laravel site if your target directory is a Laravel project and a php environment can be detected, otherwise the directory will be serve as a simple static website
 
 # Requirements
 
