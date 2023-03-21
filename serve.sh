@@ -53,18 +53,29 @@ fi
 echo "Serve: $dir"
 echo "Port:  $port"
 
-# check if the directory is a Laravel project directory
-if [ -f "$dir"/artisan ]; then
+# Check php environment
+php_exe=''
+if command -v php >/dev/null 2>&1; then
   php_exe='php'
-  if command -v valet >/dev/null 2>&1; then
-      php_exe='valet php'
-  fi
-
+fi
+if command -v valet >/dev/null 2>&1; then
+  php_exe='valet php'
+fi
+php_exe=''
+# check if the directory is a Laravel project directory
+if [[ -f "$dir"/artisan && -n $php_exe ]]; then
   #echo "Starting Laravel server on port $port..."
   cd "$dir"
   $php_exe artisan serve --port "$port" &
   SERVER_PID=$!
 else
+  if [ -f "$dir"/artisan ]; then
+    echo "+-------------------------------------------------------------------------------+"
+    echo "| NOTICE: It is likely a Laravel project, but didn't detect PHP environment.    |"
+    echo "| Use simple http server instead                                                |"
+    echo "+-------------------------------------------------------------------------------+"
+  fi
+
   echo "Starting Python server on port $port..."
   python -m http.server -d "$dir" "$port" &
   SERVER_PID=$!
@@ -96,7 +107,7 @@ sleep 5
 #read -n 1 -s
 
 printf 'Shutdown the server...'
-kill -9 $SERVER_PID
+kill $SERVER_PID
 echo 'Done'
 
 # exit the script (the trap will catch the exit signal)
