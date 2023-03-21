@@ -13,6 +13,7 @@ OPTIONS:
 # Set default values for the parameters
 dir=""
 port=8964
+SERVER_PID_FILE="/tmp/serve_any_directory_8964.PID"
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -53,6 +54,17 @@ fi
 echo "Serve: $dir"
 echo "Port:  $port"
 
+# Clear old http server if it exists
+if [ -f $SERVER_PID_FILE ]; then
+  SERVER_PID=$(cat $SERVER_PID_FILE)
+#  echo $SERVER_PID
+  if kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+    printf "Shutdown old http server..."
+    kill "$SERVER_PID"
+    echo "Done"
+  fi
+fi
+
 # Check php environment
 php_exe=''
 if command -v php >/dev/null 2>&1; then
@@ -61,7 +73,7 @@ fi
 if command -v valet >/dev/null 2>&1; then
   php_exe='valet php'
 fi
-php_exe=''
+
 # check if the directory is a Laravel project directory
 if [[ -f "$dir"/artisan && -n $php_exe ]]; then
   #echo "Starting Laravel server on port $port..."
@@ -80,6 +92,8 @@ else
   python -m http.server -d "$dir" "$port" &
   SERVER_PID=$!
 fi
+
+echo $SERVER_PID >"$SERVER_PID_FILE"
 
 # start the Cloudflare tunnel
 echo "Starting Cloudflare tunnel..."
